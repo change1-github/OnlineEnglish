@@ -71,6 +71,52 @@
             });
         }
 
+
+        function checkTeacherList() {
+
+            if (teacherList == null) {
+                setTimeout(() => {
+                    checkTeacherList();
+                }, 500);
+            } else {
+                if (isTeacherEmailValid(gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getEmail())) {
+                    console.log("Teacher Email Valid");
+                    listStudents();
+                    listAssignments();
+                } else {
+                    console.log("Teacher Email NOT valid");
+                    // redirect to error page
+                }
+            }
+
+        }
+
+        function isTeacherEmailValid(email) {
+            console.log(email);
+            if (teacherList != null) {
+
+                for (var i = 0; i < teacherList.length; i++) {
+                    if (teacherList[i][2] == email) {
+                        return true;
+                    }
+                }
+
+                //     teacherList.forEach(element => {
+
+
+
+                //         console.log(element);
+                //         console.log("2: "+element[2]);
+                //         if (element[2] == email) {
+                //             return true;
+                //         } else { console.log(element[2] == email);}
+
+
+                //     });
+            }
+            return false;
+        }
+
         /**
          *  Called when the signed in status changes, to update the UI
          *  appropriately. After a sign-in, the API is called.
@@ -79,8 +125,15 @@
             if (isSignedIn) {
                 authorizeButton.style.display = 'none';
                 signoutButton.style.display = 'block';
-                listStudents();
-                listAssignments();
+
+
+                listTeachers();
+
+                setTimeout(() => {
+                    checkTeacherList();
+                }, 500);
+
+
             } else {
                 authorizeButton.style.display = 'block';
                 signoutButton.style.display = 'none';
@@ -185,7 +238,6 @@
             text += "</tr>"
             return text;
         }
-
     </script>
 
     <!--- list students --->
