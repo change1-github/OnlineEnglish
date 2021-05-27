@@ -117,8 +117,33 @@
          * Print the names and majors of students in a sample spreadsheet:
          * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
          */
+
+
         var sList = [];
+        var teacherList = [];
         var tList = [];
+        var teacherID = null;
+
+
+        function listTeachers() {
+
+            gapi.client.sheets.spreadsheets.values.get({
+                spreadsheetId: '1_iF1R5i7wdKXBiFVnFuO20WDI6bEb0uur--_w8q71Yc',
+                range: 'Teacher List!A2:Z',
+            }).then(function (response) {
+                teacherList = response.result.values;
+            })
+        }
+
+        function checkpermissions() {
+            var teacherEmail = gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getEmail();
+            for (var teacher of teacherList) {
+                if (teacherEmail == teacher[2]) {
+                    teacherID = teacher[0];
+                    break;
+                }
+            }
+        }
 
         function listStudents() {
 
@@ -135,7 +160,7 @@
             });
         }
 
-        function listAssignments(){
+        function listAssignments() {
             gapi.client.sheets.spreadsheets.values.get({
                 spreadsheetId: '1_iF1R5i7wdKXBiFVnFuO20WDI6bEb0uur--_w8q71Yc',
                 range: 'Assignment List!A2:Z',
