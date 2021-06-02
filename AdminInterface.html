@@ -207,7 +207,7 @@
                 sList = response.result.values;
                 var target = document.getElementById('sChart');
                 for (let i = 0; i < sList.length; i++) {
-                    target.innerHTML += constructRow(sList[i]);
+                    target.innerHTML += constructRowLink(sList[i]);
                 }
                 $('#students').DataTable();
             });
@@ -226,6 +226,7 @@
                 $('#tasks').DataTable();
             });
         }
+        
 
         function constructRow(listItem) {
             var text = "<tr>";
@@ -237,6 +238,27 @@
             }
             text += "</tr>"
             return text;
+        }
+
+        function constructRowLink(listItem) {
+            var text = "<tr>";
+            var blankCell = "<td></td>";
+            var size = listItem.length;
+
+            for (let i = 0; i < listItem.length; i++) {
+                
+                if(i == 0 ){
+                    text += ("<td> <a href='#' onclick='redirectToUI(\""+listItem[i]+"\")'>" + listItem[i] + "</a> </td>");
+                } else {
+                    text += ("<td>" + listItem[i] + "</td>");
+                }
+            }
+            text += "</tr>"
+            return text;
+        }
+
+        function redirectToUI(sId) {
+            
         }
     </script>
 
