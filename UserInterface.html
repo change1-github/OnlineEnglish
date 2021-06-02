@@ -79,6 +79,10 @@
       if (isSignedIn) {
         authorizeButton.style.display = 'none';
         signoutButton.style.display = 'block';
+        listTeachers();
+        setTimeout(() => {
+          checkTeacherList();
+        }, 500);
         listStudents();
       } else {
         authorizeButton.style.display = 'block';
@@ -118,6 +122,19 @@
      */
     var sList = [];
     var tList = [];
+    teacherList = [];
+    var teacherView = false;
+
+    function listTeachers() {
+
+      gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: '1_iF1R5i7wdKXBiFVnFuO20WDI6bEb0uur--_w8q71Yc',
+        range: 'Teacher List!A2:Z',
+      }).then(function (response) {
+        teacherList = response.result.values;
+      })
+    }
+
     function listStudents() {
 
       gapi.client.sheets.spreadsheets.values.get({
@@ -126,19 +143,6 @@
       }).then(function (response) {
         sList = response.result.values;
       });
-      //   if (range.values.length > 0) {
-      //     appendPre('Id, Email:');
-      //     for (i = 0; i < range.values.length; i++) {
-      //       var row = range.values[i];
-      //       // Print columns A and E, which correspond to indices 0 and 4.
-      //       appendPre(row[0] + ', ' + row[2]);
-      //     }
-      //   } else {
-      //     appendPre('No data found.');
-      //   }
-      // }, function (response) {
-      //   appendPre('Error: ' + response.result.error.message);
-      // });
     }
 
     function idUser() {
@@ -168,7 +172,13 @@
 
     function sortTasks() {
       //sort for user
-      var sId = idUser();
+      if (teacherView) {
+        var sId = localStorage.getItem('admin_sId');
+        console.log("[ set sId to admin request ]");
+      } else {
+        var sId = idUser();
+      }
+
       var target = document.getElementById('chartBody');
       for (let i = 0; i < tList.length; i++) {
         if (sId == tList[i][1]) {
@@ -269,6 +279,45 @@
       // });
 
 
+    }
+
+    function verifyTeacherMode() {               //do at initialization
+      if (localStorage.getItem("admin_sId") != null && localStorage.getItem("admin_tId") != null) {
+        console.log("[ received both sId and tId ]");
+        teacherView = true;
+        console.log("[ teacherMode: ACTIVE ]");
+      }
+    }
+
+    function checkTeacherList() {
+
+      if (teacherList == null) {
+        setTimeout(() => {
+          checkTeacherList();
+        }, 500);
+      } else {
+        if (isTeacherEmailValid(gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getEmail())) {
+          console.log("Teacher Email Valid");
+          verifyTeacherMode();
+        } else {
+          console.log("Teacher Email NOT valid");
+          // redirect to error page
+        }
+      }
+    }
+
+    function isTeacherEmailValid(email) {
+      console.log(email);
+      if (teacherList != null && teacherList.length > 0) {
+
+        for (var i = 0; i < teacherList.length; i++) {
+          if (teacherList[i][2] == email) {
+            teacherId = teacherList[i][0];
+            return true;
+          }
+        }
+      }
+      return false;
     }
 
     function saveFileTest() {

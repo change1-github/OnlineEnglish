@@ -88,15 +88,15 @@
                     // redirect to error page
                 }
             }
-
         }
 
         function isTeacherEmailValid(email) {
             console.log(email);
-            if (teacherList != null) {
+            if (teacherList != null && teacherList.length>0) {
 
                 for (var i = 0; i < teacherList.length; i++) {
                     if (teacherList[i][2] == email) {
+                        teacherId = teacherList[i][0];
                         return true;
                     }
                 }
@@ -175,7 +175,7 @@
         var sList = [];
         var teacherList = [];
         var tList = [];
-        var teacherID = null;
+        var teacherId = null;
 
 
         function listTeachers() {
@@ -192,7 +192,7 @@
             var teacherEmail = gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getEmail();
             for (var teacher of teacherList) {
                 if (teacherEmail == teacher[2]) {
-                    teacherID = teacher[0];
+                    teacherId = teacher[0];
                     break;
                 }
             }
@@ -258,6 +258,11 @@
         }
 
         function redirectToUI(sId) {
+            localStorage.setItem("admin_tId" , teacherId)
+            localStorage.setItem("admin_sId" , sId);
+            console.log("[ storing tID + sId... ]");
+            window.open("http://localhost:5500/UserInterface.html" , "_blank");
+            console.log("[ successfully redirected to UI ]");
             
         }
     </script>
