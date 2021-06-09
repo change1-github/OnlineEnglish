@@ -124,6 +124,8 @@
     var tList = [];
     teacherList = [];
     var teacherView = false;
+    var tId;
+    var sId;
 
     function listTeachers() {
 
@@ -143,6 +145,51 @@
       }).then(function (response) {
         sList = response.result.values;
       });
+    }
+
+    function verifyTeacherMode() {               //do at initialization
+      if (localStorage.getItem("admin_sId") != null && localStorage.getItem("admin_tId") != null) {
+        console.log("[ received both sId and tId ]");
+        teacherView = true;
+        tId = localStorage.getItem("admin_tId");
+        sId = localStorage.getItem("admin_sId")
+        console.log("[ set sId to admin request ]");;
+        console.log("[ teacherMode: ACTIVE ]");
+        localStorage.clear();
+        console.log("[ localStorage RESTE]");
+        
+      }
+    }
+
+    function checkTeacherList() {
+
+      if (teacherList == null || teacherList.length==0) {
+        setTimeout(() => {
+          checkTeacherList();
+        }, 500);
+      } else {
+        if (isTeacherEmailValid(gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getEmail())) {
+          console.log("Teacher Email Valid");
+          verifyTeacherMode();
+        } else {
+          console.log("Teacher Email NOT valid");
+          // redirect to error page
+        }
+      }
+    }
+
+    function isTeacherEmailValid(email) {
+      console.log(email);
+      if (teacherList != null && teacherList.length > 0) {
+
+        for (var i = 0; i < teacherList.length; i++) {
+          if (teacherList[i][2] == email) {
+            teacherId = teacherList[i][0];
+            return true;
+          }
+        }
+      }
+      return false;
     }
 
     function idUser() {
@@ -165,18 +212,15 @@
         $('#students').DataTable({
           "order": [[1, "asc"]],
           //hide Student ID col
-          "columnDefs": [{ "visible": false, "targets": 2 }]
+          "columnDefs": [{ "visible": teacherView, "targets": 2 }]
         });
       });
     }
 
     function sortTasks() {
       //sort for user
-      if (teacherView) {
-        var sId = localStorage.getItem('admin_sId');
-        console.log("[ set sId to admin request ]");
-      } else {
-        var sId = idUser();
+      if (teacherView === false) {
+        sId = idUser();
       }
 
       var target = document.getElementById('chartBody');
@@ -279,45 +323,6 @@
       // });
 
 
-    }
-
-    function verifyTeacherMode() {               //do at initialization
-      if (localStorage.getItem("admin_sId") != null && localStorage.getItem("admin_tId") != null) {
-        console.log("[ received both sId and tId ]");
-        teacherView = true;
-        console.log("[ teacherMode: ACTIVE ]");
-      }
-    }
-
-    function checkTeacherList() {
-
-      if (teacherList == null) {
-        setTimeout(() => {
-          checkTeacherList();
-        }, 500);
-      } else {
-        if (isTeacherEmailValid(gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getEmail())) {
-          console.log("Teacher Email Valid");
-          verifyTeacherMode();
-        } else {
-          console.log("Teacher Email NOT valid");
-          // redirect to error page
-        }
-      }
-    }
-
-    function isTeacherEmailValid(email) {
-      console.log(email);
-      if (teacherList != null && teacherList.length > 0) {
-
-        for (var i = 0; i < teacherList.length; i++) {
-          if (teacherList[i][2] == email) {
-            teacherId = teacherList[i][0];
-            return true;
-          }
-        }
-      }
-      return false;
     }
 
     function saveFileTest() {

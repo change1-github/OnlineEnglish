@@ -74,7 +74,7 @@
 
         function checkTeacherList() {
 
-            if (teacherList == null) {
+            if (teacherList == null || teacherList.length==0) {
                 setTimeout(() => {
                     checkTeacherList();
                 }, 500);
