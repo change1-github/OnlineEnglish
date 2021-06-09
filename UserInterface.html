@@ -65,7 +65,7 @@
         updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
         authorizeButton.onclick = handleAuthClick;
         signoutButton.onclick = handleSignoutClick;
-        listTasks();
+        
       }, function (error) {
         appendPre(JSON.stringify(error, null, 2));
       });
@@ -175,6 +175,7 @@
           console.log("Teacher Email NOT valid");
           // redirect to error page
         }
+        listTasks();
       }
     }
 
@@ -285,8 +286,9 @@
       // fr.readAsArrayBuffer(file);
 
       const file = f.files[0];
+
       var fileMetadata = {
-        'name': aId + '_' + sId,
+        'name': aId + '_' + sId+(teacherView==true?"_"+tId:""),
         'parents': ['1hViqvSK8vUZmcule53xzvCS_RXu0qZmH'],
         'mimeType': file.type
       };
