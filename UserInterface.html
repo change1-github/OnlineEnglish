@@ -34,7 +34,7 @@
 
     // Authorization scopes required by the API; multiple scopes can be
     // included, separated by spaces.
-    var SCOPES = "https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/spreadsheets.readonly";
+    var SCOPES = "https://www.googleapis.com/auth/spreadsheets";
 
     var authorizeButton = document.getElementById('authorize_button');
     var signoutButton = document.getElementById('signout_button');
@@ -65,7 +65,7 @@
         updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
         authorizeButton.onclick = handleAuthClick;
         signoutButton.onclick = handleSignoutClick;
-        
+
       }, function (error) {
         appendPre(JSON.stringify(error, null, 2));
       });
@@ -121,7 +121,7 @@
      * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
      */
     var sList = [];
-    var tList = [];
+    var wList = [];
     teacherList = [];
     var teacherView = false;
     var tId;
@@ -157,13 +157,13 @@
         console.log("[ teacherMode: ACTIVE ]");
         localStorage.clear();
         console.log("[ localStorage RESTE]");
-        
+
       }
     }
 
     function checkTeacherList() {
 
-      if (teacherList == null || teacherList.length==0) {
+      if (teacherList == null || teacherList.length == 0) {
         setTimeout(() => {
           checkTeacherList();
         }, 500);
@@ -208,7 +208,7 @@
         spreadsheetId: '1_iF1R5i7wdKXBiFVnFuO20WDI6bEb0uur--_w8q71Yc',
         range: 'Work!A2:F',
       }).then(function (response) {
-        tList = response.result.values;
+        wList = response.result.values;
         sortTasks();
         $('#students').DataTable({
           "order": [[1, "asc"]],
@@ -225,9 +225,9 @@
       }
 
       var target = document.getElementById('chartBody');
-      for (let i = 0; i < tList.length; i++) {
-        if (sId == tList[i][1]) {
-          target.innerHTML += constructRow(tList[i]);
+      for (let i = 0; i < wList.length; i++) {
+        if (sId == wList[i][1]) {
+          target.innerHTML += constructRow(wList[i]);
         }
       }
     }
@@ -244,7 +244,7 @@
       if (link) {
         text += blankCell
       } else {
-        let txt = "'" + listItem[0] + "','" + listItem[1] + "'";
+        let txt = "'" + listItem[0] + "','" + listItem[1] + "','" + listItem[1] + "'";
         text += '<td><input id="file" type="file" onchange="saveFile(this, ' + txt + ')" /></td>'
       }
       //cell 1 - task id
@@ -270,9 +270,9 @@
       return text;
     }
 
-    function saveFile(f, aId, sId) {
+    function saveFile(f, aId, sId, aTitle) {
 
-      console.log(aId + "__" + sId);
+      console.log(aId + "_" + sId);
       // const file = f.files[0];
       // const fr = new FileReader(); x 
       //   const obj = {
@@ -288,7 +288,7 @@
       const file = f.files[0];
 
       var fileMetadata = {
-        'name': aId + '_' + sId+(teacherView==true?"_"+tId:""),
+        'name': aId + '_' + sId + (teacherView == true ? "_" + tId : ""),
         'parents': ['1hViqvSK8vUZmcule53xzvCS_RXu0qZmH'],
         'mimeType': file.type
       };
@@ -324,40 +324,67 @@
       //   }
       // });
 
-
+      updateSpreadsheet(aId, aTitle, fileMetadata.name);
     }
 
-    function saveFileTest() {
-      var fileContent = 'sample text'; // As a sample, upload a text file.
-      var file = new Blob([fileContent], {
-        type: 'text/plain'
-      });
-      var metadata = {
-        'name': 'sampleName', // Filename at Google Drive
-        'mimeType': 'text/plain', // mimeType at Google Drive
-        'parents': ['1hViqvSK8vUZmcule53xzvCS_RXu0qZmH'], // Folder ID at Google Drive
+    function updateSpreadsheet(aId, aTitle, fileName) {
+
+      const request = {
+        spreadsheetId: "1_iF1R5i7wdKXBiFVnFuO20WDI6bEb0uur--_w8q71Yc",
+        range: 'Work!A:G',
+        valueInputOption: 'USER_ENTERED',
+        // insertDataOption: 'INSERT_ROWS',
+        resource: {
+          // "majorDimension": "ROWS",
+          "values": [[aId, sId, 'aTitle', fileName, 'uploadTime', (teacherView == true ? "_" + tId : "")]]
+        }
+        // auth: oAuth2Client,
       };
 
-      var accessToken = gapi.auth.getToken().access_token; // Here gapi is used for retrieving the access token.
-      var form = new FormData();
-      form.append('metadata', new Blob([JSON.stringify(metadata)], {
-        type: 'application/json'
-      }));
-      form.append('file', file);
-
-      fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
-        method: 'POST',
-        headers: new Headers({
-          'Authorization': 'Bearer ' + accessToken
-        }),
-        body: form,
-      }).then((res) => {
-        return res.json();
-      }).then(function (val) {
-        console.log(val);
+      gapi.client.sheets.spreadsheets.values.append({request}).then((response) => {
+        var result = response.result;
+        console.log(`${result.updates.updatedCells} cells appended.`)
       });
 
+      // try {
+      //   const response = (await sheets.spreadsheets.values.append(request)).data;
+      //   // console.log(JSON.stringify(response, null, 2));    
+      // } catch (err) {
+      //   console.error(err);
+      // }
     }
+
+    // function saveFileTest() {
+    //   var fileContent = 'sample text'; // As a sample, upload a text file.
+    //   var file = new Blob([fileContent], {
+    //     type: 'text/plain'
+    //   });
+    //   var metadata = {
+    //     'name': 'sampleName', // Filename at Google Drive
+    //     'mimeType': 'text/plain', // mimeType at Google Drive
+    //     'parents': ['1hViqvSK8vUZmcule53xzvCS_RXu0qZmH'], // Folder ID at Google Drive
+    //   };
+
+    //   var accessToken = gapi.auth.getToken().access_token; // Here gapi is used for retrieving the access token.
+    //   var form = new FormData();
+    //   form.append('metadata', new Blob([JSON.stringify(metadata)], {
+    //     type: 'application/json'
+    //   }));
+    //   form.append('file', file);
+
+    //   fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+    //     method: 'POST',
+    //     headers: new Headers({
+    //       'Authorization': 'Bearer ' + accessToken
+    //     }),
+    //     body: form,
+    //   }).then((res) => {
+    //     return res.json();
+    //   }).then(function (val) {
+    //     console.log(val);
+    //   });
+
+    // }
   </script>
 
   <h2> Sorted Tasks </h2>
